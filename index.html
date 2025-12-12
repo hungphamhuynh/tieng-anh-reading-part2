@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài tập ghép nối kéo thả - Hiển thị đáp án</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 50px;
+            margin-bottom: 20px;
+        }
+
+        .people,
+        .actions {
+            list-style: none;
+            padding: 0;
+        }
+
+        .people li,
+        .actions li {
+            padding: 10px 15px;
+            margin: 10px 0;
+            background: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .people li.drop-target {
+            background: #e2e3e5;
+        }
+
+        .correct {
+            background: #d1e7dd !important;
+        }
+
+        .wrong {
+            background: #f8d7da !important;
+        }
+
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .answer {
+            font-style: italic;
+            color: blue;
+            margin-top: 5px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Bài tập ghép nối kéo thả - Hiển thị đáp án</h2>
+    <div id="exam-number"></div>
+    <div id="question-container"></div>
+    <div class="feedback" id="feedback"></div>
+
+    <button onclick="checkAnswer()">Kiểm tra câu này</button>
+    <button onclick="nextQuestion()">Câu tiếp theo</button>
+
+    <script>
+        // Mảng JSON các câu, có trường 'examNumber' do bạn tự quyết định
+        const questions = [
+            {
+                examNumber: "Đề 1",
+                people: [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                actions: [
+                    "It took place on Saturday morning, there was a 10-meter race for adults.",
+                    "Sixty people took part, and among them, Ms. Kamus kept the fastest pace and won the race.",
+                    "After she received her prize, the following time was dedicated to children’s activities.",
+                    "The activities included football, swimming, skipping, and more, and the kids played happily together.",
+                    "After finishing the games, the children were very hungry and ate with their parents."
+                ],
+                answers: {
+                    "Câu 1": "It took place on Saturday morning, there was a 10-meter race for adults.",
+                    "Câu 2": "Sixty people took part, and among them, Ms. Kamus kept the fastest pace and won the race.",
+                    "Câu 3": "After she received her prize, the following time was dedicated to children’s activities.",
+                    "Câu 4": "The activities included football, swimming, skipping, and more, and the kids played happily together.",
+                    "Câu 5": "After finishing the games, the children were very hungry and ate with their parents."
+                }
+            },
+            {
+                examNumber: "Đề 2",
+                people: [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                actions: [
+                    "Before writing, it is important to research the place carefully.",
+                    "To prepare well, you need to learn about the people and the history of the place.",
+                    "Sometimes you may not be able to visit the place, but you can still find similar information elsewhere.",
+                    "Comparing that place with your own country can be very useful.",
+                    "This comparison will help you develop a deeper understanding and write more effectively."
+                ],
+                answers: {
+                    "Câu 1": "Before writing, it is important to research the place carefully.",
+                    "Câu 2": "To prepare well, you need to learn about the people and the history of the place.",
+                    "Câu 3": "Sometimes you may not be able to visit the place, but you can still find similar information elsewhere.",
+                    "Câu 4": "Comparing that place with your own country can be very useful.",
+                    "Câu 5": "This comparison will help you develop a deeper understanding and write more effectively."
+                }
+            },
+            {
+                examNumber: "Đề 2 - Phiên bản 2",
+                people: [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                actions: [
+                    "Before writing about a place, you need to do some research on it.",
+                    "It is important to learn about the people and the history there carefully.",
+                    "Even if you cannot visit the place, your writing will still look similar to real experiences.",
+                    "You should also compare that place with your own country.",
+                    "Such comparisons will make your writing more interesting and meaningful."
+                ],
+                answers: {
+                    "Câu 1": "Before writing about a place, you need to do some research on it.",
+                    "Câu 2": "It is important to learn about the people and the history there carefully.",
+                    "Câu 3": "Even if you cannot visit the place, your writing will still look similar to real experiences.",
+                    "Câu 4": "You should also compare that place with your own country.",
+                    "Câu 5": "Such comparisons will make your writing more interesting and meaningful."
+                }
+            },
+            {
+                examNumber: "Đề 3",
+                people: [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                actions: [
+                    "This is the first time I went to a new local coffee shop.",
+                    "At first, I didn’t think the shop was good, but I still decided to try it.",
+                    "I looked at the menu and saw many different drinks and foods.",
+                    "I chose one dish for myself.",
+                    "I ate it, it was really delicious and I will come back."
+                ],
+                answers: {
+                    "Câu 1": "This is the first time I went to a new local coffee shop.",
+                    "Câu 2": "At first, I didn’t think the shop was good, but I still decided to try it.",
+                    "Câu 3": "I looked at the menu and saw many different drinks and foods.",
+                    "Câu 4": "I chose one dish for myself.",
+                    "Câu 5": "I ate it, it was really delicious and I will come back."
+                }
+            },
+            {
+                examNumber: "Đề 4",
+                people: [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                actions: [
+                    "It was held on Saturday morning, there was a 10 km race for adults.",
+                    "There were 60 participants, in which Ms. Kamus kept the fastest speed and won.",
+                    "After she received the prize, the following time was for children's activities.",
+                    "Activities including football, swimming, skipping rope, and the children played together very happily.",
+                    "After playing, the children were very hungry and ate with their parents."
+                ],
+                answers: {
+                    "Câu 1": "It was held on Saturday morning, there was a 10 km race for adults.",
+                    "Câu 2": "There were 60 participants, in which Ms. Kamus kept the fastest speed and won.",
+                    "Câu 3": "After she received the prize, the following time was for children's activities.",
+                    "Câu 4": "Activities including football, swimming, skipping rope, and the children played together very happily.",
+                    "Câu 5": "After playing, the children were very hungry and ate with their parents."
+                }
+            },
+            {
+                "examNumber": "Đề 5",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "With the support from her parents, she went to university to study science.",
+                    "Her degree enabled her to get a place on the training course in the USA.",
+                    "This space training helped Mae to become a member of a research team.",
+                    "As part of this group, she traveled to space and did a lot of experiments.",
+                    "Some of those were about growing plants and some animals in a spaceship."
+                ],
+                "answers": {
+                    "Câu 1": "With the support from her parents, she went to university to study science.",
+                    "Câu 2": "Her degree enabled her to get a place on the training course in the USA.",
+                    "Câu 3": "This space training helped Mae to become a member of a research team.",
+                    "Câu 4": "As part of this group, she traveled to space and did a lot of experiments.",
+                    "Câu 5": "Some of those were about growing plants and some animals in a spaceship."
+                }
+            },
+            {
+                "examNumber": "Đề 6",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "Over the past decade, artificial intelligence has revolutionized various industries.",
+                    "The early AI systems were limited to simple pattern recognition tasks.",
+                    "High computational costs previously hindered the development of AI.",
+                    "Nowadays, AI engineers build advanced models for complex tasks such as language translation.",
+                    "Modern AI tools help businesses to analyze data and make better decisions."
+                ],
+                "answers": {
+                    "Câu 1": "Over the past decade, artificial intelligence has revolutionized various industries.",
+                    "Câu 2": "The early AI systems were limited to simple pattern recognition tasks.",
+                    "Câu 3": "High computational costs previously hindered the development of AI.",
+                    "Câu 4": "Nowadays, AI engineers build advanced models for complex tasks such as language translation.",
+                    "Câu 5": "Modern AI tools help businesses to analyze data and make better decisions."
+                }
+            },
+            {
+                "examNumber": "Đề 7",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "The tech expo took place on Sunday morning, showcasing the latest innovations.",
+                    "More than 75 participants attended, with Ms. Tran presenting a smart home device.",
+                    "The event included 3D printing demos, AI workshops, and virtual reality experiences.",
+                    "After the presentations, awards were given for the most innovative prototype.",
+                    "Attendees had the opportunity to network over coffee and explore interactive displays."
+                ],
+                "answers": {
+                    "Câu 1": "The tech expo took place on Sunday morning, showcasing the latest innovations.",
+                    "Câu 2": "More than 75 participants attended, with Ms. Tran presenting a smart home device.",
+                    "Câu 3": "The event included 3D printing demos, AI workshops, and virtual reality experiences.",
+                    "Câu 4": "After the presentations, awards were given for the most innovative prototype.",
+                    "Câu 5": "Attendees had the opportunity to network over coffee and explore interactive displays."
+                }
+            },
+            {
+                "examNumber": "Đề 8",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "Before the open day, you should call or email us so that we can take your personal details.",
+                    "With this information, we will create an identification card for you to collect on the day.",
+                    "You must show it to access the introductory talk and the morning lectures.",
+                    "Each visitor can join a question-and-answer session with current students.",
+                    "Following these presentations, you will have the opportunity to visit different departments."
+                ],
+                "answers": {
+                    "Câu 1": "Before the open day, you should call or email us so that we can take your personal details.",
+                    "Câu 2": "With this information, we will create an identification card for you to collect on the day.",
+                    "Câu 3": "You must show it to access the introductory talk and the morning lectures.",
+                    "Câu 4": "Each visitor can join a question-and-answer session with current students.",
+                    "Câu 5": "Following these presentations, you will have the opportunity to visit different departments."
+                }
+            },
+            {
+                "examNumber": "Đề 10",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "Before writing about a place, you need to do some research on it.",
+                    "It is important to learn about the people and the history there carefully.",
+                    "Even if you cannot visit the place, your writing will still look similar to real experiences.",
+                    "You should also compare that place with your own country.",
+                    "Such comparisons will make your writing more interesting and meaningful."
+                ],
+                "answers": {
+                    "Câu 1": "Before writing about a place, you need to do some research on it.",
+                    "Câu 2": "It is important to learn about the people and the history there carefully.",
+                    "Câu 3": "Even if you cannot visit the place, your writing will still look similar to real experiences.",
+                    "Câu 4": "You should also compare that place with your own country.",
+                    "Câu 5": "Such comparisons will make your writing more interesting and meaningful."
+                }
+            },
+            {
+                "examNumber": "Đề 11",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "First, we prepare materials for our group presentation.",
+                    "Then, we present our topic for five minutes.",
+                    "During the presentation, we use pictures and our own words to explain the ideas.",
+                    "After the presentation, the other students ask questions.",
+                    "Finally, group members take turns answering the questions."
+                ],
+                "answers": {
+                    "Câu 1": "First, we prepare materials for our group presentation.",
+                    "Câu 2": "Then, we present our topic for five minutes.",
+                    "Câu 3": "During the presentation, we use pictures and our own words to explain the ideas.",
+                    "Câu 4": "After the presentation, the other students ask questions.",
+                    "Câu 5": "Finally, group members take turns answering the questions."
+                }
+            },
+            {
+                "examNumber": "Đề 12",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "I decided to visit a new café located at the end of the street.",
+                    "The place was crowded with customers.",
+                    "Even so, a staff member quickly noticed me and handed me the menu.",
+                    "I was surprised to see that the menu offered only a few options.",
+                    "In the end, I went for the priciest salad on the list."
+                ],
+                "answers": {
+                    "Câu 1": "I decided to visit a new café located at the end of the street.",
+                    "Câu 2": "The place was crowded with customers.",
+                    "Câu 3": "Even so, a staff member quickly noticed me and handed me the menu.",
+                    "Câu 4": "I was surprised to see that the menu offered only a few options.",
+                    "Câu 5": "In the end, I went for the priciest salad on the list."
+                }
+            },
+            {
+                "examNumber": "Đề 13",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "Your end of term project needs to focus on at least two of them.",
+                    "It has to include relevant pictures and your own written text about the topic.",
+                    "You then have to use these pictures and your written work to create a presentation for the class.",
+                    "This talk will give your key points and it should be around five minutes.",
+                    "After this time, other students will be able to ask some questions and you will answer those."
+                ],
+                "answers": {
+                    "Câu 1": "Your end of term project needs to focus on at least two of them.",
+                    "Câu 2": "It has to include relevant pictures and your own written text about the topic.",
+                    "Câu 3": "You then have to use these pictures and your written work to create a presentation for the class.",
+                    "Câu 4": "This talk will give your key points and it should be around five minutes.",
+                    "Câu 5": "After this time, other students will be able to ask some questions and you will answer those."
+                }
+            },
+            {
+                "examNumber": "Đề 14",
+                "people": [
+                    "Câu 1",
+                    "Câu 2",
+                    "Câu 3",
+                    "Câu 4",
+                    "Câu 5"
+                ],
+                "actions": [
+                    "The cultural festival was held on Sunday, celebrating local traditions.",
+                    "About 70 people participated, with Ms. Nguyen leading a dance group.",
+                    "Activities included pottery workshops, folk music, and food tasting.",
+                    "Families enjoyed the event, taking photos and sharing meals.",
+                    "After the main event, awards were given for the best costume."
+                ],
+                "answers": {
+                    "Câu 1": "The cultural festival was held on Sunday, celebrating local traditions.",
+                    "Câu 2": "About 70 people participated, with Ms. Nguyen leading a dance group.",
+                    "Câu 3": "Activities included pottery workshops, folk music, and food tasting.",
+                    "Câu 4": "Families enjoyed the event, taking photos and sharing meals.",
+                    "Câu 5": "After the main event, awards were given for the best costume."
+                }
+            }
+        ];
+
+        let currentIndex = 0;
+
+        // Shuffle
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        // Render câu
+        function renderQuestion() {
+            const container = document.getElementById("question-container");
+            const feedback = document.getElementById("feedback");
+            const examNumberDiv = document.getElementById("exam-number");
+            container.innerHTML = "";
+            feedback.innerHTML = "";
+
+            if (currentIndex >= questions.length) {
+                container.innerHTML = "<p>Đã hoàn thành tất cả các câu!</p>";
+                examNumberDiv.innerHTML = "";
+                return;
+            }
+
+            const question = questions[currentIndex];
+            examNumberDiv.innerHTML = `<h3>${question.examNumber}</h3>`; // hiển thị đề do bạn quyết định
+
+            const div = document.createElement("div");
+            div.classList.add("container");
+
+            // Người
+            const peopleUl = document.createElement("ul");
+            peopleUl.classList.add("people");
+            question.people.forEach(p => {
+                const li = document.createElement("li");
+                li.textContent = p;
+                li.dataset.person = p;
+                li.dataset.chosen = "";
+                li.addEventListener("dragover", e => e.preventDefault());
+                li.addEventListener("drop", e => {
+                    e.preventDefault();
+                    const action = e.dataTransfer.getData("text");
+
+                    // Nếu đã có action cũ, trả về danh sách
+                    if (li.dataset.chosen) {
+                        const oldActionLi = document.createElement("li");
+                        oldActionLi.textContent = li.dataset.chosen;
+                        oldActionLi.draggable = true;
+                        oldActionLi.addEventListener("dragstart", dragStartHandler);
+                        document.querySelector(".actions").appendChild(oldActionLi);
+                    }
+
+                    li.textContent = `${p}: ${action}`;
+                    li.dataset.chosen = action;
+
+                    // Xóa action vừa kéo khỏi danh sách
+                    document.querySelectorAll(".actions li").forEach(a => {
+                        if (a.textContent === action) a.remove();
+                    });
+                });
+                li.classList.add("drop-target");
+                peopleUl.appendChild(li);
+            });
+
+            // Actions đảo lộn
+            const actionsUl = document.createElement("ul");
+            actionsUl.classList.add("actions");
+            shuffleArray([...question.actions]).forEach(a => {
+                const li = document.createElement("li");
+                li.textContent = a;
+                li.draggable = true;
+                li.addEventListener("dragstart", dragStartHandler);
+                actionsUl.appendChild(li);
+            });
+
+            div.appendChild(peopleUl);
+            div.appendChild(actionsUl);
+            container.appendChild(div);
+        }
+
+        // Drag start
+        function dragStartHandler(e) {
+            e.dataTransfer.setData("text", e.target.textContent);
+        }
+
+        // Kiểm tra câu hiện tại
+        function checkAnswer() {
+            const question = questions[currentIndex];
+            const lis = document.querySelectorAll(".people li");
+            let allCorrect = true;
+
+            // Xóa feedback trước đó
+            document.querySelectorAll(".answer").forEach(a => a.remove());
+
+            lis.forEach(li => {
+                const person = li.dataset.person;
+                const chosen = li.dataset.chosen;
+                li.classList.remove("correct", "wrong");
+
+                const answerDiv = document.createElement("div");
+                answerDiv.classList.add("answer");
+
+                if (chosen === question.answers[person]) {
+                    li.classList.add("correct");
+                    answerDiv.textContent = `Đáp án: ${question.answers[person]}`;
+                } else {
+                    li.classList.add("wrong");
+                    allCorrect = false;
+                    answerDiv.textContent = `Đáp án đúng: ${question.answers[person]}`;
+                }
+                li.appendChild(answerDiv);
+            });
+
+            const feedback = document.getElementById("feedback");
+            if (allCorrect) {
+                feedback.style.color = "green";
+                feedback.textContent = `${question.examNumber} - Câu đúng!`;
+                // Xóa câu khỏi mảng
+                questions.splice(currentIndex, 1);
+                renderQuestion();
+            } else {
+                feedback.style.color = "red";
+                feedback.textContent = `${question.examNumber} - Câu sai, xem ô đỏ và đáp án bên dưới.`;
+            }
+        }
+
+        // Câu tiếp theo
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+            } else {
+                alert("Đây là câu cuối hoặc đã hoàn thành tất cả câu!");
+            }
+        }
+
+        // Render câu đầu tiên
+        renderQuestion();
+    </script>
+
+</body>
+
+</html>
